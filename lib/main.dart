@@ -1,18 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:map3terms/src/map3terms_scrambler.dart';
 
 void main() {
-  runApp(WhatFreeWordsApp());
+  runApp(Map3TermsApp());
 }
 
-class WhatFreeWordsApp extends StatelessWidget {
+class Map3TermsApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'WhatFreeWords Map',
+    return MaterialApp.router(
+      title: 'Map3Terms Map',
       theme: ThemeData.dark().copyWith(
         primaryColor: Colors.blue,
         scaffoldBackgroundColor: Colors.black,
@@ -20,17 +22,20 @@ class WhatFreeWordsApp extends StatelessWidget {
           bodyMedium: TextStyle(color: Colors.white),
         ),
       ),
-      home: WhatFreeWordsHome(),
+      routerConfig: _router,
     );
   }
 }
 
-class WhatFreeWordsHome extends StatefulWidget {
+class Map3TermsHome extends StatefulWidget {
+  final String? initialWords;
+  Map3TermsHome({this.initialWords});
+
   @override
-  _WhatFreeWordsHomeState createState() => _WhatFreeWordsHomeState();
+  _Map3TermsHomeState createState() => _Map3TermsHomeState();
 }
 
-class _WhatFreeWordsHomeState extends State<WhatFreeWordsHome> {
+class _Map3TermsHomeState extends State<Map3TermsHome> {
   final TextEditingController _inputController = TextEditingController();
   final MapController _mapController = MapController();
 
@@ -39,10 +44,30 @@ class _WhatFreeWordsHomeState extends State<WhatFreeWordsHome> {
   @override
   void initState() {
     super.initState();
-    _updateWordsFromCenter();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (widget.initialWords != null && widget.initialWords!.isNotEmpty) {
+        await _initializeFromURL(widget.initialWords!);
+      } else {
+        await _updateWordsFromCenter();
+      }
+    });
   }
 
-  /// **Handles input change: Detects if input is coordinates or words**
+  Future<void> _initializeFromURL(String terms) async {
+    terms = terms.replaceAll("-", " "); // Convert URL-friendly format
+    try {
+      final coords = await wordsToCoord(terms);
+      setState(() {
+        _center = LatLng(coords[0], coords[1]);
+        _mapController.move(_center, 19.0);
+        _inputController.text = terms.replaceAll(".", " "); // Show spaces instead of dots
+      });
+    } catch (e) {
+      print("Error processing terms from URL: $e");
+    }
+  }
+
+  /// **Handles input change: Detects if input is coordinates or terms**
   Future<void> _handleInput() async {
     final String input = _inputController.text.trim();
 
@@ -83,31 +108,34 @@ class _WhatFreeWordsHomeState extends State<WhatFreeWordsHome> {
     }
   }
 
-  /// **Centers the map when words are entered**
+  /// **Centers the map when terms are entered**
   Future<void> _updateMapFromWords() async {
-    final words = _inputController.text.trim().replaceAll(" ", ".");
-    if (words.isEmpty) return;
+    final terms = _inputController.text.trim().replaceAll(" ", ".");
+    if (terms.isEmpty) return;
 
     try {
-      final coords = await wordsToCoord(words);
+      final coords = await wordsToCoord(terms);
       setState(() {
         _center = LatLng(coords[0], coords[1]);
         _mapController.move(_center, _mapController.camera.zoom);
       });
     } catch (e) {
-      _showError("Invalid words format.");
+      _showError("Invalid terms format.");
     }
   }
 
-  /// **Updates the words when the map moves**
   Future<void> _updateWordsFromCenter() async {
     try {
-      final words = await coordToWords([_center.latitude, _center.longitude]);
+      final terms = await coordToWords([_center.latitude, _center.longitude]);
       setState(() {
-        _inputController.text = words.replaceAll(".", " ");
+        _inputController.text = terms.replaceAll(".", " ");
       });
+
+      // 🌍 Update the browser URL dynamically
+      final String urlWords = terms.replaceAll(".", "-");
+      GoRouter.of(context).go("/?terms=$urlWords");
     } catch (e) {
-      print("Error converting coordinates to words: $e");
+      print("Error converting coordinates to terms: $e");
     }
   }
 
@@ -229,6 +257,22 @@ class _WhatFreeWordsHomeState extends State<WhatFreeWordsHome> {
               backgroundColor: Colors.white,
             ),
           ),
+          Positioned(
+            bottom: 80,
+            right: 20,
+            child: FloatingActionButton(
+              onPressed: () {
+                final String terms = _inputController.text.replaceAll(" ", "-"); // Convert to URL format
+                final String shareableUrl = "https://yourapp.com/?terms=$terms";
+                Clipboard.setData(ClipboardData(text: shareableUrl));
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text("Copied to clipboard: $shareableUrl")),
+                );
+              },
+              child: Icon(Icons.share, color: Colors.black),
+              backgroundColor: Colors.white,
+            ),
+          ),
         ],
       ),
     );
@@ -272,3 +316,16 @@ class CrossOverlayPainter extends CustomPainter {
   @override
   bool shouldRepaint(CustomPainter oldDelegate) => false;
 }
+
+final GoRouter _router = GoRouter(
+  debugLogDiagnostics: true, // Helps debug routing issues
+  routes: [
+    GoRoute(
+      path: '/',
+      builder: (context, state) {
+        final String? terms = state.uri.queryParameters['terms']?.replaceAll("-", ".");
+        return Map3TermsHome(initialWords: terms);
+      },
+    ),
+  ],
+);
