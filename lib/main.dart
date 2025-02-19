@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:map3terms/src/map3terms_scrambler.dart';
@@ -16,11 +17,9 @@ class Map3TermsApp extends StatelessWidget {
     return MaterialApp.router(
       title: 'Map3Terms Map',
       theme: ThemeData.dark().copyWith(
-        primaryColor: Colors.blue,
-        scaffoldBackgroundColor: Colors.black,
-        textTheme: TextTheme(
-          bodyMedium: TextStyle(color: Colors.white),
-        ),
+        primaryColor: Color(0xff5471a8),
+        scaffoldBackgroundColor: Color(0xff2d3138),
+        textTheme: GoogleFonts.poppinsTextTheme(),
       ),
       routerConfig: _router,
     );
@@ -182,14 +181,14 @@ class _Map3TermsHomeState extends State<Map3TermsHome> {
                   textAlign: TextAlign.center,
                   style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
                   decoration: InputDecoration(
-                    labelText: 'Enter Words or Coordinates',
+                    labelText: 'Enter 3 Terms or Coordinates',
                     labelStyle: TextStyle(
                         color: Colors.grey,
                         fontSize: 16,
                         fontWeight: FontWeight.w800
                     ),
                     filled: true,
-                    fillColor: Colors.grey[900],
+                    fillColor: Color(0xff3d424e),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(15),
                       borderSide: BorderSide.none,
@@ -228,9 +227,9 @@ class _Map3TermsHomeState extends State<Map3TermsHome> {
                         polygons: [
                           Polygon(
                             points: _boundingBox(_center),
-                            color: Colors.white.withOpacity(0.1),
+                            color: Color(0xfffcba65).withValues(alpha: 0.1),
                             borderStrokeWidth: 2,
-                            borderColor: Colors.white,
+                            borderColor: Color(0xfffcba65),
                           ),
                         ],
                       ),
@@ -253,8 +252,8 @@ class _Map3TermsHomeState extends State<Map3TermsHome> {
             right: 20,
             child: FloatingActionButton(
               onPressed: _centerOnUserLocation,
-              child: Icon(Icons.my_location, color: Colors.black),
-              backgroundColor: Colors.white,
+              child: Icon(Icons.my_location, color: Colors.white),
+              backgroundColor: Color(0xff5471a8),
             ),
           ),
           Positioned(
@@ -269,8 +268,8 @@ class _Map3TermsHomeState extends State<Map3TermsHome> {
                   SnackBar(content: Text("Copied to clipboard: $shareableUrl")),
                 );
               },
-              child: Icon(Icons.share, color: Colors.black),
-              backgroundColor: Colors.white,
+              child: Icon(Icons.share, color: Colors.white),
+              backgroundColor: Color(0xff5471a8),
             ),
           ),
         ],
@@ -295,7 +294,7 @@ class CrossOverlayPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = Colors.white.withOpacity(0.5) // Adjust color & opacity
+      ..color = Color(0xff70a5d8).withValues(alpha: 0.5) // Adjust color & opacity
       ..strokeWidth = 1;
 
     // Draw horizontal line across the entire screen

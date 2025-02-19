@@ -1,4 +1,4 @@
-name: threeterms
+name: web3terms
 description: "A new Flutter project."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
@@ -40,6 +40,7 @@ dependencies:
     git: git@github.com:randogoth/map3terms.git
   geolocator: ^13.0.2
   go_router: ^14.8.0
+  google_fonts: ^6.2.1
 
 dev_dependencies:
   flutter_test:
