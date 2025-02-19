@@ -262,7 +262,7 @@ class _Map3TermsHomeState extends State<Map3TermsHome> {
             child: FloatingActionButton(
               onPressed: () {
                 final String terms = _inputController.text.replaceAll(" ", "-"); // Convert to URL format
-                final String shareableUrl = "https://yourapp.com/?terms=$terms";
+                final String shareableUrl = "https://randogoth.github.io/web3terms/#/?terms=$terms";
                 Clipboard.setData(ClipboardData(text: shareableUrl));
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(content: Text("Copied to clipboard: $shareableUrl")),
